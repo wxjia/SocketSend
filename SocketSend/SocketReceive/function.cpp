@@ -322,7 +322,7 @@ DWORD WINAPI ThreadRecv( LPVOID lpParam )
 			ExitClient(s);
 			return SOCKET_ERROR;
 		}
-		PlaySound(LPCTSTR(IDR_MESSAGE), NULL, SND_FILENAME|SND_ASYNC|SND_LOOP);
+		PlaySound(LPCTSTR(IDR_MESSAGE), NULL, SND_RESOURCE | SND_ASYNC);
 		int len = strlen(buffer);
 		if (strcmp("close",buffer) == 0)
 		{
@@ -332,11 +332,13 @@ DWORD WINAPI ThreadRecv( LPVOID lpParam )
 			return TRUE;
 		}
 		TCHAR editTextBuffer[MAX_NUM_BUF];
+		memset(editTextBuffer, 0, MAX_NUM_BUF);
 		GetWindowText(editHwnd, editTextBuffer, MAX_NUM_BUF);
 		TCHAR newTextStr[MAX_NUM_BUF];
-		wsprintf(newTextStr,TEXT("%s%s"),editTextBuffer,buffer);
-		mySetWindowText(newTextStr);
-		sendLine(s, buffer,hWnd);
+		memset(newTextStr, 0, MAX_NUM_BUF);
+		wsprintf(newTextStr, TEXT("%s%s\r\n"), editTextBuffer, buffer);
+		SetWindowText(editHwnd, newTextStr);
+		sendLine(s, buffer, hWnd);
 	}
 	return 0;
 }
