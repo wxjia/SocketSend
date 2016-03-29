@@ -13,6 +13,7 @@
 #define IDB_BUTTON_START 1090
 #define IDB_BUTTON_END 1091
 #define IDB_BUTTON_CLEAR 1092
+#define IDB_STATIC_STATUS 1093
 
 //全局变量
 //服务器状态 初始化FALSE表示关闭 
@@ -21,6 +22,8 @@ int connCount = 0;
 HWND editHwnd = NULL;//文本框句柄
 HWND buttonStart = NULL;//开启服务按钮句柄
 HWND buttonEnd = NULL;//关闭服务按钮句柄
+HWND buttonClear = NULL;//清屏按钮句柄
+HWND staticStatus = NULL;
 //服务器socket 初始化为INVALID_SOCKET 表示不可用
 SOCKET serviceSocket = INVALID_SOCKET;
 
@@ -202,9 +205,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			WS_CHILD | WS_VISIBLE | WS_BORDER  ,
 			200, 470, 90, 30, hWnd, (HMENU)IDB_BUTTON_END, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 		
-		buttonEnd = CreateWindow("button", TEXT("清屏"),
+		buttonClear = CreateWindow("button", TEXT("清屏"),
 			WS_CHILD | WS_VISIBLE | WS_BORDER  ,
 			320, 470, 90, 30, hWnd, (HMENU)IDB_BUTTON_CLEAR, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+	
+		staticStatus = CreateWindow("static", TEXT("Status : Stop"),
+			WS_CHILD | WS_VISIBLE | WS_BORDER  ,
+			30, 40, 130, 20, hWnd, (HMENU)IDB_STATIC_STATUS, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
 		
 		break;
