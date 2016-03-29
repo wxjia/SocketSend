@@ -61,7 +61,7 @@ int connectServer(HWND hwnd)
 	addrServ.sin_family=AF_INET;
 	//addrServ.sin_addr=*((LPIN_ADDR)* hostEntry->h_addr_list);
 	addrServ.sin_port=htons(SERVERPORT);
-	addrServ.sin_addr.S_un.S_addr=inet_addr("192.168.137.1");
+	addrServ.sin_addr.S_un.S_addr=inet_addr("192.168.1.101");
 
 	//连接服务器
 	int retVal=connect(clientSocket, (LPSOCKADDR)&addrServ, sizeof(SOCKADDR_IN));
@@ -119,24 +119,7 @@ int sendLine(SOCKET &s, char* buffSend, HWND hwnd)
 	//错误处理
 	if(SOCKET_ERROR==retVal)
 	{
-		int nErrorCode=WSAGetLastError();
-		if(WSAENOTCONN==nErrorCode)
-		{
-			ShowErrorMsg();
-			MessageBox(hwnd,TEXT("SOCKET连接出错！"),TEXT("提示"),MB_OK);
-		}else if(WSAESHUTDOWN==nErrorCode)
-		{
-			ShowErrorMsg();
-			MessageBox(hwnd,TEXT("SOCKET已经关闭！"),TEXT("提示"),MB_OK);
-		}else if(WSAETIMEDOUT==nErrorCode)
-		{
-			ShowErrorMsg();
-			MessageBox(hwnd,TEXT("连接已中断！"),TEXT("提示"),MB_OK);
-		}else
-		{
-			ShowErrorMsg();
-			MessageBox(hwnd,TEXT("发送失败"),TEXT("提示"),MB_OK);
-		}
+		ShowErrorMsg();
 		return SOCKET_ERROR;//发送失败
 	}
 	return TRUE;//发送成功
@@ -152,10 +135,11 @@ int receiveData(SOCKET s, char* buffer, HDC hdc)
 	if(SOCKET_ERROR==retVal)
 	{
 		closeService(s);
+		//connectStatus = FALSE;
 		ShowErrorMsg();
 		TCHAR errorMessage[128];
 		int len = wsprintf(errorMessage,TEXT("%s"),"阻塞接收失败");
-		TextOut(hdc,30,100,errorMessage,len);
+		mySetWindowText(errorMessage);
 
 		return SOCKET_ERROR;
 	}
@@ -304,47 +288,8 @@ void CALLBACK MyTimerProc (HWND hWnd, UINT message, UINT iTimerID, DWORD dwTime)
 	TextOut(hdc,30,20,Timer,len);
 
 	TCHAR status[128];//字符缓冲区
-	len = wsprintf(status,TEXT("Status : %s"),connectStatus==TRUE?"connecting":"not connecting");
+	len = wsprintf(status,TEXT("Status : %s"),connectStatus==TRUE?"已连接":"未连接");
 	TextOut(hdc,30,40,status,len);
-
-}
-
-//Accept线程函数
-DWORD WINAPI ThreadAccept( LPVOID lpParam )
-{
-	//参数转换
-	lpParameter acceptPara;
-	acceptPara = (lpParameter) lpParam;
-	SOCKET* s = acceptPara->socket;
-	HWND hWnd = acceptPara->hWnd;
-
-	sockaddr_in addrClient;
-	int addrClientlen=sizeof(addrClient);
-	SOCKET acceptSocket = INVALID_SOCKET;
-	while (TRUE == connectStatus)
-	{
-		//accept为阻塞函数 只有新来的连接请求才能使其继续运行
-		acceptSocket = accept(*s,(sockaddr FAR*)&addrClient,&addrClientlen);
-		if(acceptSocket==INVALID_SOCKET)
-		{
-			connectStatus = FALSE;
-			closeService(*s);
-			mySetWindowText("阻塞accept失败");
-
-			return FALSE;
-		}
-
-		//这里再创建条线程 接受收到的字符
-		lpParameter acceptPara = (lpParameter)malloc(sizeof(struct myParameter));//给进程传参数
-		ZeroMemory(acceptPara, sizeof(acceptPara));//清空以确保万无一失
-		//参数赋值
-		acceptPara->hWnd = hWnd;
-		acceptPara->socket = &acceptSocket;
-		LPVOID para = (LPVOID) acceptPara;
-		CreateThread(NULL,0,ThreadRecv,para,0,NULL);
-
-	}
-	return TRUE;
 }
 
 //循环Recv线程函数
@@ -388,11 +333,19 @@ int closeService(SOCKET serviceSocket)
 }
 
 //向文本编辑框添加数据
+
 void mySetWindowText(char* msg)
 {
 	TCHAR editTextBuffer[MAX_NUM_BUF];
 	GetWindowText(editHwnd, editTextBuffer, MAX_NUM_BUF);
 	TCHAR newTextStr[MAX_NUM_BUF];
-	wsprintf(newTextStr,TEXT("%s%s\r\n"),editTextBuffer,msg);
+	if (strlen(editTextBuffer) == 0)
+	{
+		wsprintf(newTextStr,TEXT("%s"),msg);
+	} 
+	else
+	{
+		wsprintf(newTextStr,TEXT("%s\r\n%s"),editTextBuffer,msg);
+	}
 	SetWindowText(editHwnd, newTextStr);
 }

@@ -17,10 +17,6 @@ int InitSocket(SOCKET &sServer,HWND hwnd);
 int connectServer(HWND hwnd);
 //绑定套接字
 int BindSocket(SOCKET &sServer,HWND hwnd);
-//监听
-int Listener(SOCKET &sServer,HWND hwnd);
-//接受客户请求
-int Accept(SOCKET &sClient,SOCKET &sServer,sockaddr_in &addrClient,int &cConning,HWND hwnd);
 //发送数据
 int sendLine(SOCKET &s,char* buffSend,HWND hwnd);
 //接收数据**************self

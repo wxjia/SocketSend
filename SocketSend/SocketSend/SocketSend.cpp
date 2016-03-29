@@ -194,6 +194,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case IDB_BUTTON_SEND:
 		{
+			if (connectStatus == FALSE)
+			{
+				mySetWindowText("还没连接，别乱发数据");
+				break;
+			}
 			//设置和获取文本框里的内容
 			TCHAR editTextBuffer[MAX_NUM_BUF];
 			memset(editTextBuffer,0,MAX_NUM_BUF);
@@ -208,13 +213,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case IDB_BUTTON_CLOSE:
 		{
-			sendLine(clientSocket, "close", hWnd);
-			int ret = closeService(clientSocket);
-			if (FALSE == ret)
+			//如果已经关闭 不作反应
+			if (connectStatus == FALSE)
 			{
 				mySetWindowText("client has stopped");
 				break;
-			}else if(SOCKET_ERROR == ret)
+			}
+			sendLine(clientSocket, "close", hWnd);
+			int ret = closeService(clientSocket);
+			if(SOCKET_ERROR == ret)
 			{
 				mySetWindowText("client closesocket fail");
 				break;
