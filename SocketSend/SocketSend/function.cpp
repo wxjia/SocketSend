@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "function.h"
 
-#pragma comment(lib,"ws2_32.lib") 
+#pragma comment(lib,"ws2_32.lib")
 
 extern int connectStatus;
 extern SOCKET clientSocket;
@@ -27,7 +27,6 @@ int InitDll(HWND hwnd)
 	}
 	return TRUE;
 }
-
 
 //创建SOCKET
 int InitSocket(SOCKET &sServer,HWND hwnd)
@@ -109,13 +108,11 @@ int BindSocket(SOCKET &sServer,HWND hwnd)
 	return TRUE;
 }
 
-
 //发送数据
 int sendLine(SOCKET &s, char* buffSend, HWND hwnd)
 {
 	int retVal=1;//返回值
 	retVal=send(s,buffSend,strlen(buffSend)+1,0);//一次发送
-
 	//错误处理
 	if(SOCKET_ERROR==retVal)
 	{
@@ -124,7 +121,6 @@ int sendLine(SOCKET &s, char* buffSend, HWND hwnd)
 	}
 	return TRUE;//发送成功
 }
-
 
 //接收数据**************self
 int receiveData(SOCKET s, char* buffer, HDC hdc)
@@ -156,7 +152,6 @@ int recvLine(char* buffRecv,int &cConning,HWND hwnd)
 	while(!bLineEnd && cConning)
 	{
 		nReadLen=recv(1,buffRecv+nDataLen,1,0);//每次接受一个字节
-
 		//错误处理
 		if(SOCKET_ERROR==nReadLen)
 		{
@@ -198,7 +193,6 @@ int recvLine(char* buffRecv,int &cConning,HWND hwnd)
 	}
 	return retVal;
 }
-
 
 //退出服务  如无错误发生，则closesocket()返回0。
 //否则的话，返回SOCKET_ERROR错误，
@@ -267,7 +261,6 @@ int cutString(char* str,char* ret,int start,int end)
 	ret[i]='\0';
 	return TRUE;
 }
-
 
 //帮助测试用函数
 void showStr(char* str)
@@ -349,3 +342,4 @@ void mySetWindowText(char* msg)
 	}
 	SetWindowText(editHwnd, newTextStr);
 }
+
