@@ -11,21 +11,30 @@
 #define IDB_BUTTON_CONNECT 1026
 #define IDB_BUTTON_SEND 1027
 #define IDB_BUTTON_CLOSE 1028
+#define HMENU_ID 1
 
-HWND editHwnd = NULL;//文本框的句柄
-HWND buttonHwnd = NULL;//按钮的句柄
-HWND buttonConnect = NULL;//连接按钮的句柄
-HWND buttonSend = NULL;//发送按钮的句柄
-HWND buttonClose = NULL;//关闭按钮的句柄
+HWND receiveEditHwnd = NULL;// 接收返回消息的文本框句柄
+HWND sendEditHwnd = NULL;
+HWND ipEditHwnd = NULL;
+HWND portEditHwnd = NULL;
+
+HWND buttonHwnd = NULL;// 按钮的句柄
+HWND buttonConnect = NULL;// 连接按钮的句柄
+HWND buttonSend = NULL;// 发送按钮的句柄
+HWND buttonClose = NULL;// 关闭按钮的句柄
 
 int connectStatus = FALSE;
 SOCKET clientSocket = INVALID_SOCKET;
+
+char ip[128];
+short port;
 
 // 全局变量:
 HINSTANCE hInst;								// 当前实例
 TCHAR szTitle[MAX_LOADSTRING];					// 标题栏文本
 TCHAR szWindowClass[MAX_LOADSTRING];			// 主窗口类名
-//add by wxjia
+
+// add by wxjia
 TCHAR szButton[MAX_LOADSTRING];
 
 // 此代码模块中包含的函数的前向声明:
@@ -72,8 +81,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	return (int) msg.wParam;
 }
-
-
 
 //
 //  函数: MyRegisterClass()
@@ -125,7 +132,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hInst = hInstance; // 将实例句柄存储在全局变量中
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   hWnd = CreateWindow(szWindowClass, szTitle, WS_SYSMENU,
       400, 100, 400, 600, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
@@ -136,9 +143,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
-   //初始化过程
-   //开启一条新线程 在服务器对话框上显示时间
+   // 初始化过程
+   // 开启一条新线程 在服务器对话框上显示时间
    SetTimer(hWnd,0,1000,MyTimerProc);
+
+   // 显示永远不变的静态文本
+   HDC hdc = GetDC(hWnd);
+   TCHAR buffer[64];//字符缓冲区
+   int len = wsprintf(buffer,TEXT("IP:"));
+   TextOut(hdc,30,435,buffer,len);
+   len = wsprintf(buffer,TEXT("PORT:"));
+   TextOut(hdc,190,435,buffer,len);
 
    return TRUE;
 }
@@ -177,13 +192,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 			break;
 		case IDB_BUTTON_CONNECT:
+			TCHAR ip_port[MAX_NUM_BUF];
+			memset(ip_port,0,MAX_NUM_BUF);
+			GetWindowText(ipEditHwnd, ip_port, MAX_NUM_BUF);
+			strcpy_s(ip, sizeof(ip), ip_port);
+			memset(ip_port,0,MAX_NUM_BUF);
+			GetWindowText(portEditHwnd, ip_port, MAX_NUM_BUF);
+			port = atoi(ip_port);
+
 			if(connectStatus != TRUE)//还未连接服务器，现在连接
 			{
-				//Windows Sockets 动态库的初始化
+				// Windows Sockets 动态库的初始化
 				InitDll(hWnd);
 				//创建SOCKET
 				InitSocket(clientSocket, hWnd);
-				//连接服务器
+				// 连接服务器
 				connectServer(hWnd);
 			}
 			if(connectStatus != TRUE)
@@ -199,10 +222,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				mySetWindowText("还没连接，别乱发数据");
 				break;
 			}
-			//设置和获取文本框里的内容
+			// 设置和获取文本框里的内容
 			TCHAR editTextBuffer[MAX_NUM_BUF];
 			memset(editTextBuffer,0,MAX_NUM_BUF);
-			GetWindowText(editHwnd, editTextBuffer, MAX_NUM_BUF);
+			GetWindowText(sendEditHwnd, editTextBuffer, MAX_NUM_BUF);
 			int ret = sendLine(clientSocket, editTextBuffer, hWnd);
 			if (SOCKET_ERROR == ret)
 			{
@@ -213,7 +236,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case IDB_BUTTON_CLOSE:
 		{
-			//如果已经关闭 不作反应
+			// 如果已经关闭 不作反应
 			if (connectStatus == FALSE)
 			{
 				mySetWindowText("client has stopped");
@@ -241,42 +264,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN:
 		{
-			//设置和获取文本框里的内容
+			// 设置和获取文本框里的内容
+			/*
 			TCHAR editTextBuffer[MAX_NUM_BUF];
-			GetWindowText(editHwnd, editTextBuffer, MAX_NUM_BUF);
+			GetWindowText(receiveEditHwnd, editTextBuffer, MAX_NUM_BUF);
 			HDC hdc = GetDC(hWnd);
 			TCHAR newTextStr[MAX_NUM_BUF];
-			wsprintf(newTextStr,TEXT("%s - %s"),editTextBuffer,"jiaweixi");
-			SetWindowText(editHwnd, newTextStr);
+			wsprintf(newTextStr,TEXT("%s - %s"),editTextBuffer,"receiveEditHwnd");
+			SetWindowText(receiveEditHwnd, newTextStr);
+			*/
 		
 			break;
 		}
 		
 	case WM_CREATE:
 		{
-			editHwnd = CreateWindow("edit", NULL,
+			receiveEditHwnd = CreateWindow("edit", NULL,
 				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_MULTILINE ,
-				30, 100, 300, 100, hWnd, (HMENU)1, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+				30, 80, 300, 200, hWnd, (HMENU)HMENU_ID, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+	
+			sendEditHwnd = CreateWindow("edit", NULL,
+				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_MULTILINE ,
+				30, 370, 300, 50, hWnd, (HMENU)HMENU_ID, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
-			buttonHwnd = CreateWindow("button", TEXT("连接服务"),
+			ipEditHwnd = CreateWindow("edit", TEXT("192.168.1.101"),
+				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_MULTILINE ,
+				50, 430, 130, 30, hWnd, (HMENU)HMENU_ID, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+			
+			portEditHwnd = CreateWindow("edit", TEXT("5419"),
+				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_MULTILINE ,
+				240, 430, 60, 30, hWnd, (HMENU)HMENU_ID, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+			
+			buttonConnect = CreateWindow("button", TEXT("连接服务"),
 				WS_CHILD | WS_VISIBLE | WS_BORDER  ,
 				30, 470, 90, 30, hWnd, (HMENU)IDB_BUTTON_CONNECT, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
-
-			buttonConnect = CreateWindow("button", TEXT("发送数据"),
+			buttonSend = CreateWindow("button", TEXT("发送数据"),
 				WS_CHILD | WS_VISIBLE | WS_BORDER  ,
 				130, 470, 90, 30, hWnd, (HMENU)IDB_BUTTON_SEND, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
-
-			buttonSend = CreateWindow("button", TEXT("断开服务"),
+			buttonClose = CreateWindow("button", TEXT("断开服务"),
 				WS_CHILD | WS_VISIBLE | WS_BORDER  ,
 				230, 470, 90, 30, hWnd, (HMENU)IDB_BUTTON_CLOSE, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
-
-			buttonClose = CreateWindow("button", TEXT("jiaweixi"),
+			buttonHwnd = CreateWindow("button", TEXT("B"),
 				WS_CHILD | WS_VISIBLE | WS_BORDER  ,
-				30, 300, 100, 50, hWnd, (HMENU)IDB_BUTTON, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
-
+				240, 10, 30, 20, hWnd, (HMENU)IDB_BUTTON, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
 			break;
 		}

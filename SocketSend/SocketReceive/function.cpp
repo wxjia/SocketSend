@@ -246,16 +246,21 @@ void CALLBACK MyTimerProc (HWND hWnd, UINT message, UINT iTimerID, DWORD dwTime)
 	TCHAR Timer[128];//字符缓冲区
 	int len = wsprintf(Timer,TEXT("%i年%i月%i日 %i:%i:%i"),stLocal.wYear,stLocal.wMonth,stLocal.wDay,stLocal.wHour,stLocal.wMinute,stLocal.wSecond);
 	HDC hdc = GetDC(hWnd);
-	TextOut(hdc,30,20,Timer,len);
+	//TextOut(hdc,30,20,Timer,len);
 
 	TCHAR Status[128];//字符缓冲区
 	len = wsprintf(Status,TEXT("Status : %s"),serviceStatus==TRUE?"Start":"Stop");
 	//TextOut(hdc,30,40,Status,len);
-	SetWindowText(staticStatus, Status);
+	//SetWindowText(staticStatus, Status);
 
 	TCHAR connCountString[128];//字符缓冲区
 	len = wsprintf(connCountString,TEXT("connCount : %d"),connCount);
-	TextOut(hdc,30,60,connCountString,len);
+	//TextOut(hdc,30,60,connCountString,len);
+
+	TCHAR myBuffer[1024];
+	wsprintf(myBuffer,TEXT("%s\r\n%s\r\n%s"), Timer, Status, connCountString);
+	SetWindowText(staticStatus, myBuffer);
+	
 }
 
 //Accept线程函数
@@ -320,6 +325,10 @@ DWORD WINAPI ThreadRecv( LPVOID lpParam )
 		int retval=receiveData(s, buffer, hdc);
 		if (SOCKET_ERROR == retval)
 		{
+			if (FALSE == serviceStatus)
+			{
+				return SOCKET_ERROR;
+			}
 			connCount--;
 			ExitClient(s);
 			return SOCKET_ERROR;
@@ -397,6 +406,7 @@ int startService(HWND hWnd, SOCKET& serviceSocket)
 //关闭服务器
 int closeService(SOCKET serviceSocket)
 {
+	
 	if (FALSE == serviceStatus)
 	{
 		return FALSE;
@@ -408,9 +418,9 @@ int closeService(SOCKET serviceSocket)
 		return ret;
 	}
 	serviceStatus = FALSE;
-	connCount =0;
 	WSACleanup();
 	mySetWindowText("startService -- Service stop success");
+	connCount = 0;
 	return 0;
 }
 

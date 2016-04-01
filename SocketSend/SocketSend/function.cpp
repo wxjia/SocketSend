@@ -5,7 +5,9 @@
 
 extern int connectStatus;
 extern SOCKET clientSocket;
-extern HWND editHwnd;
+extern HWND receiveEditHwnd;
+extern char ip[];
+extern short port;
 
 //Windows Sockets 动态库的初始化
 int InitDll(HWND hwnd)
@@ -43,6 +45,13 @@ int InitSocket(SOCKET &sServer,HWND hwnd)
 //连接服务器
 int connectServer(HWND hwnd)
 {
+	/*
+	// 显示端口号和ip地址
+	showStr(ip);
+	TCHAR temp[128];
+	wsprintf(temp,TEXT("%d"),port);
+	showStr(temp);
+	*/
 	//获取主机信息
 	LPHOSTENT hostEntry;
 	TCHAR hostname[MAX_NUM_BUF];
@@ -59,8 +68,8 @@ int connectServer(HWND hwnd)
 	SOCKADDR_IN addrServ;
 	addrServ.sin_family=AF_INET;
 	//addrServ.sin_addr=*((LPIN_ADDR)* hostEntry->h_addr_list);
-	addrServ.sin_port=htons(SERVERPORT);
-	addrServ.sin_addr.S_un.S_addr=inet_addr("192.168.1.101");
+	addrServ.sin_port=htons(port);
+	addrServ.sin_addr.S_un.S_addr=inet_addr(ip);
 
 	//连接服务器
 	int retVal=connect(clientSocket, (LPSOCKADDR)&addrServ, sizeof(SOCKADDR_IN));
@@ -95,7 +104,7 @@ int BindSocket(SOCKET &sServer,HWND hwnd)
 	int retVal;
 	//服务器套接字地址
 	addrServ.sin_family=AF_INET;
-	addrServ.sin_port=htons(SERVERPORT);
+	addrServ.sin_port=htons(port);
 	addrServ.sin_addr.s_addr=INADDR_ANY;
 	//绑定套接字
 	retVal=bind(sServer,(LPSOCKADDR)&addrServ,sizeof(SOCKADDR_IN));
@@ -326,11 +335,10 @@ int closeService(SOCKET serviceSocket)
 }
 
 //向文本编辑框添加数据
-
 void mySetWindowText(char* msg)
 {
 	TCHAR editTextBuffer[MAX_NUM_BUF];
-	GetWindowText(editHwnd, editTextBuffer, MAX_NUM_BUF);
+	GetWindowText(receiveEditHwnd, editTextBuffer, MAX_NUM_BUF);
 	TCHAR newTextStr[MAX_NUM_BUF];
 	if (strlen(editTextBuffer) == 0)
 	{
@@ -340,6 +348,6 @@ void mySetWindowText(char* msg)
 	{
 		wsprintf(newTextStr,TEXT("%s\r\n%s"),editTextBuffer,msg);
 	}
-	SetWindowText(editHwnd, newTextStr);
+	SetWindowText(receiveEditHwnd, newTextStr);
 }
 

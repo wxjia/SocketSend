@@ -1,7 +1,6 @@
 #pragma once
 #define MAX_NUM_BUF 1024*8
 #define SERVER_DLL_ERROR 1	//调用Windows Sockets失败
-#define SERVERPORT 5419		//服务器TCP端口
 
 //线程函数参数
 typedef struct myParameter{
@@ -37,3 +36,5 @@ DWORD WINAPI ThreadRecv( LPVOID lpParam );
 int closeService(SOCKET serviceSocket);
 //向文本编辑框添加数据
 void mySetWindowText(char* msg);
+//帮助测试用函数
+void showStr(char* str);

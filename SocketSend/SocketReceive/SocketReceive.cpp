@@ -124,7 +124,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 将实例句柄存储在全局变量中
    //窗口的位置和大小
    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      300, 100, 500, 600, NULL, NULL, hInstance, NULL);
+      300, 100, 510, 600, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
    {
@@ -184,7 +184,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
-		
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -194,8 +193,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 	{
 		editHwnd = CreateWindow("edit", NULL,
-			WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_MULTILINE ,
-			30, 100, 400, 300, hWnd, (HMENU)1, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+			WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL | ES_MULTILINE |WS_VSCROLL ,
+			30, 100, 430, 360, hWnd, (HMENU)1, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
 		buttonStart = CreateWindow("button", TEXT("开启服务"),
 			WS_CHILD | WS_VISIBLE | WS_BORDER  ,
@@ -209,11 +208,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			WS_CHILD | WS_VISIBLE | WS_BORDER  ,
 			320, 470, 90, 30, hWnd, (HMENU)IDB_BUTTON_CLEAR, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 	
-		staticStatus = CreateWindow("static", TEXT("Status : Stop"),
+		staticStatus = CreateWindow("static", TEXT("WELCOME"),
 			WS_CHILD | WS_VISIBLE | WS_BORDER  ,
-			30, 40, 130, 20, hWnd, (HMENU)IDB_STATIC_STATUS, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
+			30, 20, 300, 70, hWnd, (HMENU)IDB_STATIC_STATUS, ((LPCREATESTRUCT) lParam) -> hInstance, NULL);
 
-		
 		break;
 	}
 
@@ -257,6 +255,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		break;
+	case WM_CTLCOLORSTATIC:
+	{
+		break;
+	}
+		
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
